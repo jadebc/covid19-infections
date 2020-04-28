@@ -47,7 +47,7 @@ toc()
 colnames(corrected_samples_state_1day) = unique(covid_state_1day$state)
 
 
-saveRDS(corrected_samples_state_1day, paste0(results_path, "NO_PUSH_corrected_samples_us_state_", Sys.Date(),
+saveRDS(corrected_samples_state_1day, paste0(results_path, "bias-corrected-distributions/state/NO_PUSH_corrected_samples_us_state_", Sys.Date(),
                                   "_", "reps", reps, ".RDS"))
 
 # obtain medians
