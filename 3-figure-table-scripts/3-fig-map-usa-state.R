@@ -42,7 +42,7 @@ USA_Adm_Simple <- gSimplify(USA_Adm_1, tol=0.01, topologyPreserve=TRUE)
 USA_Adm_1 <- SpatialPolygonsDataFrame(USA_Adm_Simple, data=USA_Adm_1@data)
 
 # read in lakes data from http://www.naturalearthdata.com/downloads/10m-physical-vectors/
-great_lakes <- st_read(paste0(here::here(), "/1-data/ne_10m_lakes"))
+great_lakes <- st_read(paste0(here::here(), "/1-data/great-lakes"))
 great_lakes_subset <- great_lakes %>% filter(name_alt == "Great Lakes") %>%  
                                       filter(scalerank == 0) 
 
