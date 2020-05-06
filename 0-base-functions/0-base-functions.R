@@ -78,7 +78,7 @@ load_state_data = function(min_date, max_date){
   covid_usa_state <- covid_usa_state %>% left_join(state_pop, by = "state") %>%
     filter(!is.na(population)) 
   
-  covid_usa_state = covid_usa_state %>% mutate(date = format(as.Date(as.character(date), format = "%Y%m%d"), "%Y-%m-%d")) %>% 
+  covid_usa_state = covid_usa_state %>% mutate(date = as.Date(format(as.Date(as.character(date), format = "%Y%m%d"), "%Y-%m-%d"))) %>% 
     filter(date >= as.Date(min_date) & date <= as.Date(max_date))
   
   covid_usa_state
@@ -134,7 +134,7 @@ load_US_data = function(min_date, max_date){
       total = sum(total, na.rm=TRUE),
       population = sum(population, na.rm=TRUE)) %>%
     # drop dates with not all 50+DC states
-    mutate(date = format(as.Date(as.character(date), format = "%Y%m%d"), "%Y-%m-%d")) %>% 
+    mutate(date = as.Date(format(as.Date(as.character(date), format = "%Y%m%d"), "%Y-%m-%d"))) %>% 
     filter(date >= as.Date(min_date) & date <= as.Date(max_date))
   
 }
