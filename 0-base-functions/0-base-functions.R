@@ -53,9 +53,11 @@ gg_color_hue <- function(n) {
 # Output:         none
 ##############################################
 load_state_data = function(min_date, max_date){
-  #Temporary fix to covid19us package bug
+  
+  #covid19us package current has a bug, uncommit this line when it's fixed
   #covid_usa_state <- get_states_daily(state = "all", date = "all")
-  covid_usa_state = read.csv(paste0(here::here(),"/1-data/covid-tracking-data/daily.csv"))  
+  
+  covid_usa_state = read.csv(paste0(here::here(),"/1-data/covid-tracking-data/daily.csv"))
   
   # load state population data
   state_pop_raw <- read_csv(population_data_path)
@@ -82,6 +84,7 @@ load_state_data = function(min_date, max_date){
     filter(date >= as.Date(min_date) & date <= as.Date(max_date))
   
   covid_usa_state
+  
 }
 
 ##############################################
@@ -101,9 +104,10 @@ load_state_data = function(min_date, max_date){
 ##############################################
 load_US_data = function(min_date, max_date){
   
-  #Temporary fix to covid19us package bug
+  #covid19us package current has a bug, uncommit this line when it's fixed
   #covid_usa_state <- get_states_daily(state = "all", date = "all")
-  covid_usa_state = read.csv(paste0(here::here(),"/1-data/covid-tracking-data/daily.csv"))  
+  covid_usa_state = read.csv(paste0(here::here(),"/1-data/covid-tracking-data/daily.csv"))
+
   
   # load state population data
   state_pop_raw <- read_csv(population_data_path)
@@ -134,7 +138,7 @@ load_US_data = function(min_date, max_date){
       total = sum(total, na.rm=TRUE),
       population = sum(population, na.rm=TRUE)) %>%
     # drop dates with not all 50+DC states
-    mutate(date = as.Date(format(as.Date(as.character(date), format = "%Y%m%d"), "%Y-%m-%d"))) %>% 
+    mutate(date = format(as.Date(as.character(date), format = "%Y%m%d"), "%Y-%m-%d")) %>% 
     filter(date >= as.Date(min_date) & date <= as.Date(max_date))
   
 }
