@@ -11,8 +11,27 @@ source(paste0(here::here(), "/0-config.R"))
 #---------------------------------------
 # Observed case counts
 #---------------------------------------
-# Read in covid US and state data 
+# read in public health response data 
+# load most recent file saved in directory
+testing_protocols = read.csv(paste0(results_path, "testing_by_state.csv"))
+state_abb_key = read.csv(state_abbrev_path) %>% select(statename = State, state = Abbreviation)
+
+# exclude Puerto Rico 
+state_abb_key = state_abb_key[state_abb_key$state != 'PR', ]
+
+
+testing_protocols = testing_protocols %>% select(-X, state = State) %>% 
+  mutate(Date.start = as.Date(Date.start),
+         Date.end = as.Date(Date.end)) %>% 
+  left_join(state_abb_key, by = "state") %>% 
+  mutate(`Testing Protocol` = case_when(test_cat == "hosp" ~ "Hospitalized Patients",
+                                        test_cat == "default" ~ "Default Protocol",
+                                        test_cat == "all" ~ "All Symptomatic and Asymtomatic Patients",
+                                        test_cat == "hosp_sev_mod_mild" ~ "All Inpatient and Outpatient"))
+
+# Read in covid US and state data, excluding Puerto Rico 
 covid_usa_state <- load_state_data(min_date = "2020-02-28", max_date = "2020-04-18")
+covid_usa_state = covid_usa_state[covid_usa_state$state != 'PR', ]
 
 maxdate = max(covid_usa_state$date)
 
@@ -100,8 +119,9 @@ region_labels = covid_state %>%
 
 covid_state = covid_state %>% 
   mutate(mylabel = paste0(statename, "\n",
-                        date, "\n",
-                        sprintf("%0.1f", testrate), " per 1,000"))
+                          date, "\n",
+                          sprintf("%0.1f", testrate), " per 1,000"))
+
 
 
 palette = viridis(n = 5, option = "C", begin=0, end=0.9, direction = -1)
@@ -131,6 +151,27 @@ ggsave(testplot, filename = paste0(plot_path, "fig-testrates-state.png"),
        width = 10, height = 5)
 
 
+testplot_with_policy_change = ggplot(covid_state, aes(x = date, y = testrate, group = state,  
+                                                      text = mylabel)) + 
+  geom_line() +
+  ylab("Population tested per 1,000") +
+  xlab("Date") +
+  scale_y_continuous(breaks = seq(0,30,5), labels = seq(0,30,5)) +
+  scale_x_date(date_breaks = "10 days", date_labels = "%b %d") + 
+  scale_color_manual(values = palette) +
+  facet_wrap(~statename, ncol = 5)+
+  geom_vline(data = testing_protocols %>% filter(state %in% unique(covid_state$state)), 
+             aes(xintercept = Date.start, color = `Testing Protocol`), linetype = 5) +
+  theme_bw()  +
+  theme(legend.position = "bottom",
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(size=5))
+testplot_with_policy_change
+
+ggsave(testplot_with_policy_change, filename = paste0(plot_path, "fig-testrates-state-with-protocol.png"),
+       width = 8, height = 11)
+
+
 ## Interactive plot 
 testplot_int = ggplotly(testplot + scale_color_manual("Testing per 1,000\nby April 18, 2020", values = palette), tooltip="text") %>% 
   style(hoverlabel = list(align = "left")) %>% 
@@ -139,5 +180,4 @@ testplot_int = ggplotly(testplot + scale_color_manual("Testing per 1,000\nby Apr
 
 saveWidget(testplot_int, paste0(plot_path, "fig-testrates-state.html"), selfcontained = T)
 
- 
- 
+

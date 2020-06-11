@@ -13,10 +13,10 @@ rm(list=ls())
 
 library(rgdal)
 library(rgeos)
-library(raster)
 library(leaflet)
 library(maptools)
 library(sf)
+library(tigris)
 
 source(paste0(here::here(), "/0-config.R"))
 
@@ -35,20 +35,24 @@ covid_usa_data = covid_usa_state_adjusted %>%
                               ifelse(positive==0, "", " estimated : observed"), "<br>",
                               format(estimated_cases, big.mark=",", digits=0, scientific=F, trim = TRUE), " estimated cases", "<br>",
                               format(positive, big.mark=",", digits=0, scientific=F, trim = TRUE), " observed cases"))
-
+ 
 # read in US state boundaries
-USA_Adm_1 <- raster::getData("GADM", country="USA", level=1)
-USA_Adm_Simple <- gSimplify(USA_Adm_1, tol=0.01, topologyPreserve=TRUE)
-USA_Adm_1 <- SpatialPolygonsDataFrame(USA_Adm_Simple, data=USA_Adm_1@data)
+USA_Adm_1 <- tigris:::states(cb = TRUE)
+USA_Adm_1 <- st_as_sf(USA_Adm_1)
+
+
+territories = c('AS', 'VI', 'MP', 'GU')
+USA_Adm_1 <- USA_Adm_1 %>% filter(!USA_Adm_1$STUSPS %in% territories)
+USA_Adm_1 <- as_Spatial(USA_Adm_1)
 
 # read in lakes data from http://www.naturalearthdata.com/downloads/10m-physical-vectors/
-great_lakes <- st_read(paste0(here::here(), "/1-data/great-lakes"))
+great_lakes <- st_read(paste0(here::here(), "/1-data/lakes"))
 great_lakes_subset <- great_lakes %>% filter(name_alt == "Great Lakes") %>%  
-                                      filter(scalerank == 0) 
+  filter(scalerank == 0) 
 
 
 # merge cases with shape file
-USA_shp = merge(USA_Adm_1, covid_usa_data, by = "NAME_1")
+USA_shp = merge(USA_Adm_1, covid_usa_data, by.x = 'NAME', by.y = 'NAME_1')
 
 # get cases per pop
 USA_shp$ratio = ifelse(USA_shp$positive==0, NA, USA_shp$estimated_cases / USA_shp$positive)
@@ -60,7 +64,9 @@ label_interval <- function(breaks) {
 }
 
 ratio_quantiles <- quantile(USA_shp$ratio, c(0, 0.2, 0.4, 0.6, 0.8, 1), na.rm=TRUE)
-obs_case_perpop_quantiles <- unique(quantile(USA_shp$obs_case_perpop, c(0, 0.2, 0.4, 0.6, 0.8, 1)))
+obs_case_perpop_quantiles <- unique(quantile(USA_shp$obs_case_perpop, 
+                                             c(0, 0.2, 0.4, 0.6, 0.8, 1),
+                                             na.rm=TRUE))
 
 # create categorical variable
 USA_shp$ratio = cut(USA_shp$ratio, 
@@ -86,12 +92,12 @@ obs_cases_pal = colorFactor(orrd_colors, USA_shp$obs_case_perpop_cat)
 ##############################################
 # map of estimated : observed cases 
 ##############################################
-map_ratio_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE)) %>%
+map_ratio_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, attributionControl = FALSE)) %>%
   
   addProviderTiles(provider = "CartoDB.Positron") %>%
   
   # set zoom center point and level
-  setView(lng = -99, lat = 39.0997, zoom = 4.1) %>%
+  setView(lng = -99, lat = 39, zoom = 4.1) %>%
   
   # add state case count polygons
   addPolygons(
@@ -111,7 +117,7 @@ map_ratio_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE)) 
     weight = 0.5,
     opacity = 1,
     fillOpacity = 1) %>%
-
+  
   # add legend
   addLegend("bottomleft",
             pal = exp_cases_pal,
@@ -130,14 +136,14 @@ map_ratio_usa
 ##############################################
 # map of observed cases per 1,000
 ##############################################
-map_obs_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE)) %>%
+map_obs_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, attributionControl = FALSE)) %>%
   
   addProviderTiles(provider = "CartoDB.Positron") %>%
   
   # set zoom center point and level
-  setView(lng = -99, lat = 39.0997, zoom = 4.1) %>%
-  
-  # add state case count polygons
+  setView(lng = -99, lat = 39, zoom = 4.1) %>%  
+
+    # add state case count polygons
   addPolygons(
     data=USA_shp,
     color = "#878787",
@@ -167,7 +173,6 @@ map_obs_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE)) %>
 
 
 map_obs_usa
-
 
 # use export feature to manually save files
 # png: "fig-map-usa-state-cases-per-1000-obs.png"
