@@ -45,12 +45,6 @@ territories = c('AS', 'VI', 'MP', 'GU')
 USA_Adm_1 <- USA_Adm_1 %>% filter(!USA_Adm_1$STUSPS %in% territories)
 USA_Adm_1 <- as_Spatial(USA_Adm_1)
 
-# read in lakes data from http://www.naturalearthdata.com/downloads/10m-physical-vectors/
-great_lakes <- st_read(paste0(here::here(), "/1-data/lakes"))
-great_lakes_subset <- great_lakes %>% filter(name_alt == "Great Lakes") %>%  
-  filter(scalerank == 0) 
-
-
 # merge cases with shape file
 USA_shp = merge(USA_Adm_1, covid_usa_data, by.x = 'NAME', by.y = 'NAME_1')
 
@@ -98,30 +92,23 @@ map_ratio_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, a
   
   # set zoom center point and level
   setView(lng = -99, lat = 39, zoom = 4.1) %>%
-  
+
   # add state case count polygons
   addPolygons(
     data=USA_shp,
+    smoothFactor = 0,
     color = "#878787",
-    fillColor=  ~exp_cases_pal(USA_shp$ratio),
     weight = 0.5,
     opacity = 1,
+    fillColor=  ~exp_cases_pal(USA_shp$ratio),
     fillOpacity = 1,
     highlightOptions = highlightOptions(color = "#FFFFFF", weight = 2,
                                         bringToFront = FALSE),
     label = ~lapply(USA_shp$ratio_label, htmltools::HTML)) %>%
   
-  addPolygons(
-    data=great_lakes_subset,
-    color = "#D4DADC",
-    weight = 0.5,
-    opacity = 1,
-    fillOpacity = 1) %>%
-  
   # add legend
   addLegend("bottomleft",
             pal = exp_cases_pal,
-            # values = ~USA_shp$est_case_perpop,
             values = ~USA_shp$ratio,
             title = "estimated:confirmed",
             opacity = 1
@@ -146,6 +133,7 @@ map_obs_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, att
     # add state case count polygons
   addPolygons(
     data=USA_shp,
+    smoothFactor = 0,
     color = "#878787",
     fillColor=  ~obs_cases_pal(USA_shp$obs_case_perpop_cat),
     weight = 0.5,
@@ -154,13 +142,6 @@ map_obs_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, att
     highlightOptions = highlightOptions(color = "#FFFFFF", weight = 2,
                                         bringToFront = TRUE),
     label = ~lapply(USA_shp$obs_label, htmltools::HTML)) %>%
-  
-  addPolygons(
-    data=great_lakes_subset,
-    color = "#D4DADC",
-    weight = 0.5,
-    opacity = 1,
-    fillOpacity = 1) %>%
   
   # add legend
   addLegend("bottomleft",
