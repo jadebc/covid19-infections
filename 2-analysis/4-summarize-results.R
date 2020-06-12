@@ -9,6 +9,7 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
+
 covid_usa_state_adjusted = readRDS(paste0(results_path, "covid_usa_state_adjusted.RDS"))
 covid_all_usa <- load_US_data(min_date = "2020-03-07", max_date = "2020-04-18")
 
@@ -56,7 +57,7 @@ us_res$ratio
 # testing rates
 #---------------------------------------
 covid_all_usa = covid_all_usa %>% 
-  filter(date %in% as.Date(c("2020-02-28", "2020-04-18"))) %>%
+  filter(as.Date(date) %in% as.Date(c("2020-02-28", "2020-04-18"))) %>%
   mutate(testrate = total / population * 1000)
 covid_all_usa$testrate
 
@@ -74,11 +75,11 @@ state_res %>% dplyr::select(testpos_rate) %>% pull() %>% max()
 #---------------------------------------
 # total US cases obs and exp
 #---------------------------------------
-covid_usa$estimated_cases / covid_usa$positive
-covid_usa$positive / covid_usa$population * 1000
+us_res$estimated_cases / us_res$positive
+us_res$positive / us_res$population * 1000
 
-covid_usa$estimated_cases_lb / covid_usa$positive
-covid_usa$estimated_cases_ub / covid_usa$positive
+us_res$estimated_cases_lb / us_res$positive
+us_res$estimated_cases_ub / us_res$positive
 
 #---------------------------------------
 # state range cases obs and exp

@@ -32,7 +32,7 @@ covid_state_1day = covid_usa_state %>%
 #---------------------------------------
 # Expected case counts
 #---------------------------------------
-reps = 1000
+reps = 1e4
 Sys.time()
 tic()
 corrected_samples_state_1day = mapply(
@@ -48,8 +48,9 @@ toc()
 
 colnames(corrected_samples_state_1day) = unique(covid_state_1day$state)
 
-
-saveRDS(corrected_samples_state_1day, paste0(results_path, "bias-corrected-distributions/state/NO_PUSH_corrected_samples_us_state_undertesting_", Sys.Date(),
+saveRDS(corrected_samples_state_1day, 
+        paste0(results_path, 
+               "bias-corrected-distributions/state-undertesting/NO_PUSH_corrected_samples_us_state_undertesting_", Sys.Date(),
                                   "_", "reps", reps, ".RDS"))
 
 #---------------------------------------------
@@ -133,6 +134,8 @@ saveRDS(covid_usa_adjusted, paste0(results_path, "covid_usa_state_adjusted_under
 #---------------------------------------------
 # obtain national average - percent change due to undertesting
 #---------------------------------------------
+
+library(Hmisc)
 
 covid_state_1day %>%
   select(state,population) %>%

@@ -1,9 +1,9 @@
 #######################################
-# COVID-19 estimated infections 
-# correcting for incomplete testing and 
+# COVID-19 estimated infections
+# correcting for incomplete testing and
 # imperfect test accuracy
 
-# Obtain estimated number of infections 
+# Obtain estimated number of infections
 # per state
 #######################################
 rm(list=ls())
@@ -18,7 +18,7 @@ simdata = readRDS(paste0(results_path, "NO_PUSH_state_priors_out.RDS"))
 #---------------------------------------
 # Observed case counts
 #---------------------------------------
-# Read in covid US and state data 
+# Read in covid US and state data
 covid_usa_state <- load_state_data(min_date = "2020-02-28", max_date = "2020-04-18")
 
 maxdate = max(covid_usa_state$date)
@@ -30,7 +30,7 @@ covid_state_1day = covid_usa_state %>%
 #---------------------------------------
 # Expected case counts
 #---------------------------------------
-reps = 1000
+reps = 1e4
 Sys.time()
 tic()
 corrected_samples_state_1day = mapply(
@@ -46,20 +46,19 @@ toc()
 
 colnames(corrected_samples_state_1day) = unique(covid_state_1day$state)
 
-
 saveRDS(corrected_samples_state_1day, paste0(results_path, "bias-corrected-distributions/state/NO_PUSH_corrected_samples_us_state_", Sys.Date(),
                                   "_", "reps", reps, ".RDS"))
 
 # obtain medians
-sample_medians = unlist(mclapply(1:nrow(covid_state_1day), 
+sample_medians = unlist(mclapply(1:nrow(covid_state_1day),
                             function(x) median(corrected_samples_state_1day[,x]$exp_cases)))
 
-sample_lb = unlist(mclapply(1:nrow(covid_state_1day), 
-                            function(x) quantile(corrected_samples_state_1day[,x]$exp_cases, prob=0.025, 
+sample_lb = unlist(mclapply(1:nrow(covid_state_1day),
+                            function(x) quantile(corrected_samples_state_1day[,x]$exp_cases, prob=0.025,
                                                  na.rm=TRUE)))
 
-sample_ub = unlist(mclapply(1:nrow(covid_state_1day), 
-                            function(x) quantile(corrected_samples_state_1day[,x]$exp_cases, prob=0.975, 
+sample_ub = unlist(mclapply(1:nrow(covid_state_1day),
+                            function(x) quantile(corrected_samples_state_1day[,x]$exp_cases, prob=0.975,
                                                  na.rm=TRUE)))
 
 
@@ -70,9 +69,3 @@ covid_usa_adjusted <- covid_state_1day %>% mutate(
   )
 
 saveRDS(covid_usa_adjusted, paste0(results_path, "covid_usa_state_adjusted.RDS"))
-
-
-
-
-
-
