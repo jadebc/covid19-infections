@@ -1,6 +1,6 @@
 #######################################
-# COVID-19 estimated infections 
-# correcting for incomplete testing and 
+# COVID-19 estimated infections
+# correcting for incomplete testing and
 # imperfect test accuracy
 
 # configure data directories
@@ -24,13 +24,11 @@ library(stringr)
 library(tidyverse)
 library(viridis)
 library(tictoc)
-library(Hmisc)
 
 #--------------------------------------------
 # load base functions
 #--------------------------------------------
 source(paste0(here::here(), "/0-base-functions/0-base-functions.R"))
-
 
 #--------------------------------------------
 # define raw data paths
@@ -64,6 +62,3 @@ plot_path = paste0(here::here(), "/4-figures/")
 full_simulation_path = "~/Box Sync/covid19-expected-cases/"
 
 results_path = paste0(here::here(), "/5-results/")
-
-
-
