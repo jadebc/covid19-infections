@@ -10,6 +10,8 @@
 rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
+
+# priors = box_search("NO_PUSH_state_priors_out.RDS") %>% box_read()
 priors = readRDS(paste0(results_path, "NO_PUSH_state_priors_out.RDS"))
 
 state_abbrev <- read_csv(state_abbrev_path) %>%
@@ -216,36 +218,179 @@ ggsave(prior_plot_smooth_prebayes, filename = paste0(plot_path, "fig-priors-stat
 #--------------------------------------
 # table - static priors
 #--------------------------------------
-min = apply(static_priors, 2, min)
-med = apply(static_priors, 2, median)
-max = apply(static_priors, 2, max)
+# min = apply(static_priors, 2, min)
+# med = apply(static_priors, 2, median)
+# max = apply(static_priors, 2, max)
+#
+# table = bind_rows(min, med, max) %>% t() %>% as.data.frame()
+#
+# colnames(table) = c("min","med","max")
+#
+# table = table %>% mutate(
+#   min = sprintf("%0.03f", min),
+#   med = sprintf("%0.03f", med),
+#   max = sprintf("%0.03f", max)
+# ) %>%
+#   mutate(label = rownames(table)) %>%
+#   mutate(label = case_when(
+#     label == "P_S_tested" ~ "P(S|tested)",
+#     label == "P_S_untested" ~ "P(S|untested)",
+#     label == "Z_S" ~ "alpha",
+#     label == "Z_A" ~ "beta",
+#     label == "P_testpos_S" ~ "P(test + |S)",
+#     label == "P_testpos_A" ~ "P(test + |A)",
+#     label == "P_S_testpos" ~ "P(S | test +)",
+#     label == "P_A_testpos" ~ "P(A | test +)",
+#     label == "dist_Se" ~ "Sensitivity",
+#     label == "dist_Sp" ~ "Specificity"
+#   )) %>% filter(!is.na(label))
+#
+#
+# write.csv(table, file = paste0(results_path, "input_dist_range.csv"))
 
-table = bind_rows(min, med, max) %>% t() %>% as.data.frame()
+get_prior_parameters <- function(){
 
-colnames(table) = c("min","med","max")
+  p2_shape <- find_beta_shape_params(mu = 0.025, sd = (0.15)^2)
+  zs_shape <- find_beta_shape_params(mu = 0.9, sd = (0.2)^2)
+  za_shape <- find_beta_shape_params(mu = 0.15, sd = (0.3)^2)
+  p0_shape <- find_beta_shape_params(mu = 0.4, sd = (0.35)^2)
+  Se_shape <- find_beta_shape_params(mu = 0.8, sd = (0.4)^2)
+  Sp_shape <- find_beta_shape_params(mu = 0.99995, sd = (0.01)^2)
 
-table = table %>% mutate(
-  min = sprintf("%0.03f", min),
-  med = sprintf("%0.03f", med),
-  max = sprintf("%0.03f", max)
-) %>%
-  mutate(label = rownames(table)) %>%
-  mutate(label = case_when(
-    label == "P_S_tested" ~ "P(S|tested)",
-    label == "P_S_untested" ~ "P(S|untested)",
-    label == "Z_S" ~ "alpha",
-    label == "Z_A" ~ "beta",
-    label == "P_testpos_S" ~ "P(test + |S)",
-    label == "P_testpos_A" ~ "P(test + |A)",
-    label == "P_S_testpos" ~ "P(S | test +)",
-    label == "P_A_testpos" ~ "P(A | test +)",
-    label == "dist_Se" ~ "Sensitivity",
-    label == "dist_Sp" ~ "Specificity"
-  )) %>% filter(!is.na(label))
+  prior_parameters <- list(
+    p1_shape1 = 20, p1_shape2 = 1.4, # P(S1|tested)
+    p2_a = 0, p2_b = 0.15, p2_shape1 = p2_shape$a, p2_shape2 = p2_shape$b, # P(S1|untested)
+    zs_a = 0.8, zs_b = 1, zs_shape1 = zs_shape$a, zs_shape2 = zs_shape$b, # alpha
+    za_a = 0.002, za_b = 0.4, za_shape1 = za_shape$a, za_shape2 = za_shape$b, # beta
+    p0_a = 0.25, p0_b = 0.7, p0_shape1 = p0_shape$a, p0_shape2 = p0_shape$b, # P(S0|test+)
+    Se_a = 0.65, Se_b = 1, Se_shape1 = Se_shape$a, Se_shape2 = Se_shape$b, # sensitivity
+    Sp_a = 0.9998, Sp_b = 1, Sp_shape1 = Sp_shape$a, Sp_shape2 = Sp_shape$b # specificity
+  )
+
+  return(prior_parameters)
+}
+
+get_values_prior <- function(parameters){
+
+  out <- replicate(n=7,expr={NULL})
+  out <- setNames(out,nm = c("P(S1|tested)", "P(S1|untested)", "alpha", "beta", "P(S0|test+)", "Se", "Sp"))
+
+  # P(S1|tested)
+  mean_p1 <- parameters$p1_shape1 / (parameters$p1_shape1 + parameters$p1_shape2)
+
+  out[["P(S1|tested)"]]$mean <- mean_p1
+  out[["P(S1|tested)"]]$min <- 0
+  out[["P(S1|tested)"]]$max <- 1
+  out[["P(S1|tested)"]]$shape1 <- parameters$p1_shape1
+  out[["P(S1|tested)"]]$shape2 <- parameters$p1_shape2
+
+  # P(S1|untested)
+  integrand <- function(x){
+    truncdist::dtrunc(
+      x = x, spec = "beta", a = parameters$p2_a, b = parameters$p2_b,
+      shape1 = parameters$p2_shape1, shape2 = parameters$p2_shape2, ncp = 0
+    ) * x
+  }
+
+  mean_p2 <- integrate(integrand,lower=0,upper=1)$value
+
+  out[["P(S1|untested)"]]$mean <- mean_p2
+  out[["P(S1|untested)"]]$min <- parameters$p2_a
+  out[["P(S1|untested)"]]$max <- parameters$p2_b
+  out[["P(S1|untested)"]]$shape1 <- parameters$p2_shape1
+  out[["P(S1|untested)"]]$shape2 <- parameters$p2_shape2
+
+  # alpha
+  integrand <- function(x){
+    truncdist::dtrunc(
+      x = x, spec = "beta", a = parameters$zs_a, b = parameters$zs_b,
+      shape1 = parameters$zs_shape1, shape2 = parameters$zs_shape2, ncp = 0
+    ) * x
+  }
+
+  mean_zs <- integrate(integrand,lower=0,upper=1)$value
+
+  out[["alpha"]]$mean <- mean_zs
+  out[["alpha"]]$min <- parameters$zs_a
+  out[["alpha"]]$max <- parameters$zs_b
+  out[["alpha"]]$shape1 <- parameters$zs_shape1
+  out[["alpha"]]$shape2 <- parameters$zs_shape2
+
+  # beta
+  integrand <- function(x){
+    truncdist::dtrunc(
+      x = x, spec = "beta", a = parameters$za_a, b = parameters$za_b,
+      shape1 = parameters$za_shape1, shape2 = parameters$za_shape2, ncp = 0
+    ) * x
+  }
+
+  mean_za <- integrate(integrand,lower=0,upper=1)$value
+
+  out[["beta"]]$mean <- mean_za
+  out[["beta"]]$min <- parameters$za_a
+  out[["beta"]]$max <- parameters$za_b
+  out[["beta"]]$shape1 <- parameters$za_shape1
+  out[["beta"]]$shape2 <- parameters$za_shape2
+
+  # P(S0|test+)
+  integrand <- function(x){
+    truncdist::dtrunc(
+      x = x, spec = "beta", a = parameters$p0_a, b = parameters$p0_b,
+      shape1 = parameters$p0_shape1, shape2 = parameters$p0_shape2, ncp = 0
+    ) * x
+  }
+
+  mean_p0 <- integrate(integrand,lower=0,upper=1)$value
+
+  out[["P(S0|test+)"]]$mean <- mean_p0
+  out[["P(S0|test+)"]]$min <- parameters$p0_a
+  out[["P(S0|test+)"]]$max <- parameters$p0_b
+  out[["P(S0|test+)"]]$shape1 <- parameters$p0_shape1
+  out[["P(S0|test+)"]]$shape2 <- parameters$p0_shape2
+
+  # sensitivity
+  integrand <- function(x){
+    truncdist::dtrunc(
+      x = x, spec = "beta", a = parameters$Se_a, b = parameters$Se_b,
+      shape1 = parameters$Se_shape1, shape2 = parameters$Se_shape2, ncp = 0
+    ) * x
+  }
+
+  mean_Se <- integrate(integrand,lower=0,upper=1)$value
+
+  out[["Se"]]$mean <- mean_Se
+  out[["Se"]]$min <- parameters$Se_a
+  out[["Se"]]$max <- parameters$Se_b
+  out[["Se"]]$shape1 <- parameters$Se_shape1
+  out[["Se"]]$shape2 <- parameters$Se_shape2
+
+  # specificity
+  integrand <- function(x){
+    truncdist::dtrunc(
+      x = x, spec = "beta", a = parameters$Sp_a, b = parameters$Sp_b,
+      shape1 = parameters$Sp_shape1, shape2 = parameters$Sp_shape2, ncp = 0
+    ) * x
+  }
+
+  mean_Sp <- integrate(integrand,lower=parameters$Sp_a-0.01,upper=1,subdivisions=1e3)$value
+
+  out[["Sp"]]$mean <- mean_Sp
+  out[["Sp"]]$min <- parameters$Sp_a
+  out[["Sp"]]$max <- parameters$Sp_b
+  out[["Sp"]]$shape1 <- parameters$Sp_shape1
+  out[["Sp"]]$shape2 <- parameters$Sp_shape2
+  
+  out <- do.call(rbind,out)
+  out <- out[,c("min","mean","max","shape1","shape2")]
+  storage.mode(out) <- "numeric"
+  return(out)
+}
 
 
-write.csv(table, file = paste0(results_path, "input_dist_range.csv"))
+pars <- get_prior_parameters()
+prior_vals <- get_values_prior(parameters = pars)
 
+write.csv(round(prior_vals,5), file = paste0(results_path, "input_dist_range.csv"))
 
 
 #--------------------------------------
