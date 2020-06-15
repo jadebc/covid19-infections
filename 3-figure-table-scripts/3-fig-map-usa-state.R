@@ -116,9 +116,9 @@ map_ratio_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, a
 
 map_ratio_usa
 
-# use export feature to manually save files
-# png: "fig-map-usa-state-exp-obs-ratio.png"
-# html: "fig-map-usa-state-exp-obs-ratio.html"
+mapview:::mapshot(map_ratio_usa, file=paste0(plot_path, "fig-map-usa-state-exp-obs-ratio.png"))
+mapview:::mapshot(map_ratio_usa, url=paste0(plot_path, "fig-map-usa-state-exp-obs-ratio.html"))
+
 
 ##############################################
 # map of observed cases per 1,000
@@ -155,6 +155,6 @@ map_obs_usa = leaflet(USA_shp, options = leafletOptions(zoomControl = FALSE, att
 
 map_obs_usa
 
-# use export feature to manually save files
-# png: "fig-map-usa-state-cases-per-1000-obs.png"
-# html: "fig-map-usa-state-cases-per-1000-obs.html"
+mapview:::mapshot(map_obs_usa, file=paste0(plot_path, "fig-map-usa-state-cases-per-1000-obs.png"))
+mapview:::mapshot(map_obs_usa, url=paste0(plot_path, "fig-map-usa-state-cases-per-1000-obs.html"))
+
