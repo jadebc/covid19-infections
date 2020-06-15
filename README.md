@@ -20,7 +20,8 @@ To date, coronavirus testing in the US has been extremely limited. Confirmed COV
 * `1-obtain-priors-state.R`: obtain priors for each state
 * `2-est-expected-cases-state.R`: estimate expected cases in each state
 * `3-est-expected-cases-state-perf-testing.R`: estimate expected cases in each state, estimate the percentage of underestimation due to incomplete testing vs. imperfect test accuracy
-* `4-summarize-results.R`: summarize results; obtain results for in text numerical results. 
+* `4-obtain-testing-protocols.R`: find testing protocols for each state.
+* `5-summarize-results.R`: summarize results; obtain results for in text numerical results. 
 
 **`3-figure-table-scripts`** : folder containing figure scripts. To rerun all scripts in this subdirectory, run the bash script `0-run-figs.sh`.
 
