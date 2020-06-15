@@ -121,6 +121,10 @@ colnames(corrected_samples_state_1day) = unique(covid_state_1day$state)
 # saveRDS(corrected_samples_state_1day, paste0(results_path, "NO_PUSH_corrected_samples_us_state_undertesting_", Sys.Date(),
 #                                   "_", "reps", reps, ".RDS"))
 
+# box_write(corrected_samples_state_1day,
+#           paste0("NO_PUSH_corrected_samples_us_state_undertesting_", Sys.Date(), "_", "reps", reps, ".RDS"),
+#           box_getwd())
+
 # obtain medians
 sample_medians = unlist(mclapply(1:nrow(covid_state_1day),
                             function(x) median(corrected_samples_state_1day[,x]$exp_cases)))

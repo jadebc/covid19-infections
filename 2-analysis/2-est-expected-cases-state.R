@@ -13,6 +13,7 @@ source(paste0(here::here(), "/0-base-functions/0-bias-corr-functions.R"))
 set.seed(123)
 
 # load priors
+# simdata = box_search("NO_PUSH_state_priors_out.RDS") %>% box_read()
 simdata = readRDS(paste0(results_path, "NO_PUSH_state_priors_out.RDS"))
 
 #---------------------------------------
@@ -46,7 +47,11 @@ toc()
 
 colnames(corrected_samples_state_1day) = unique(covid_state_1day$state)
 
-saveRDS(corrected_samples_state_1day, paste0(results_path, "bias-corrected-distributions/state/NO_PUSH_corrected_samples_us_state_", Sys.Date(),
+# box_write(corrected_samples_state_1day,
+#   paste0("NO_PUSH_corrected_samples_us_state_", Sys.Date(), "_", "reps", reps, ".RDS"),
+#    dir_id = 115224581369)
+
+saveRDS(corrected_samples_state_1day, paste0(results_path, "NO_PUSH_corrected_samples_us_state_", Sys.Date(),
                                   "_", "reps", reps, ".RDS"))
 
 # obtain medians

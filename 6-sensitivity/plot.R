@@ -13,6 +13,7 @@ library(here)
 source(here::here("/0-config.R"))
 
 # load data
+# sens <- box_search("NO_PUSH_sens.RDS") %>% box_read()
 sens <- readRDS(here::here("6-sensitivity/NO_PUSH_sens.RDS"))
 
 # --------------------------------------------------------------------------------

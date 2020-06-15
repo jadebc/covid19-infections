@@ -11,6 +11,7 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
 
+# priors = box_search("NO_PUSH_state_priors_out.RDS") %>% box_read()
 priors = readRDS(paste0(results_path, "NO_PUSH_state_priors_out.RDS"))
 
 state_abbrev <- read_csv(state_abbrev_path) %>%
@@ -217,36 +218,6 @@ ggsave(prior_plot_smooth_prebayes, filename = paste0(plot_path, "fig-priors-stat
 #--------------------------------------
 # table - static priors
 #--------------------------------------
-# min = apply(static_priors, 2, min)
-# med = apply(static_priors, 2, median)
-# max = apply(static_priors, 2, max)
-#
-# table = bind_rows(min, med, max) %>% t() %>% as.data.frame()
-#
-# colnames(table) = c("min","med","max")
-#
-# table = table %>% mutate(
-#   min = sprintf("%0.03f", min),
-#   med = sprintf("%0.03f", med),
-#   max = sprintf("%0.03f", max)
-# ) %>%
-#   mutate(label = rownames(table)) %>%
-#   mutate(label = case_when(
-#     label == "P_S_tested" ~ "P(S|tested)",
-#     label == "P_S_untested" ~ "P(S|untested)",
-#     label == "Z_S" ~ "alpha",
-#     label == "Z_A" ~ "beta",
-#     label == "P_testpos_S" ~ "P(test + |S)",
-#     label == "P_testpos_A" ~ "P(test + |A)",
-#     label == "P_S_testpos" ~ "P(S | test +)",
-#     label == "P_A_testpos" ~ "P(A | test +)",
-#     label == "dist_Se" ~ "Sensitivity",
-#     label == "dist_Sp" ~ "Specificity"
-#   )) %>% filter(!is.na(label))
-#
-#
-# write.csv(table, file = paste0(results_path, "input_dist_range.csv"))
-
 get_prior_parameters <- function(){
 
   p2_shape <- find_beta_shape_params(mu = 0.025, sd = (0.15)^2)

@@ -7,7 +7,13 @@
 # distribution from simulation
 #######################################
 rm(list=ls())
+library(boxr)
 source(paste0(here::here(), "/0-config.R"))
+
+# samples = as.data.frame(box_search("NO_PUSH_corrected_samples_us_state", ancestor_folder_ids = "115224581369"))
+# latest = samples %>% filter(modified_at == max(samples$modified_at))
+# latest_file_id = latest$id
+# dist = box_read(latest_file_id)
 
 tmpshot <- fileSnapshot(paste0(results_path, "bias-corrected-distributions/state/"))
 latest = rownames(tmpshot$info[which.max(tmpshot$info$mtime),])
@@ -15,9 +21,15 @@ dist = readRDS(paste0( results_path, "/bias-corrected-distributions/state/", lat
 
 data = readRDS(paste0(results_path, "covid_usa_state_adjusted.RDS"))
 
+state_abbrev <- read_csv(state_abbrev_path) %>%
+  rename(state = Abbreviation,
+         statename = State)
+
 #--------------------------------------
 # process state distributions
 #--------------------------------------
+state_abbrev <- read_csv(state_abbrev_path)
+
 state_case_dist_list = list()
 N_list = list()
 for(i in 1:ncol(dist)){
@@ -48,7 +60,8 @@ plotdf = left_join(state_case_distl, N_dfl, by = "state") %>%
 
 
 plotdf = plotdf %>%
-  left_join(state_abbrev, by = "state")
+  left_join(state_abbrev, by = c("state" = "Abbreviation")) %>%
+  rename("statename" = "state")
 
 plotdf$statename = factor(plotdf$statename)
 plotdf$statename_f = fct_reorder(plotdf$statename, plotdf$med)

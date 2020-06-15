@@ -1,0 +1,385 @@
+---
+title: "Correcting case counts for COVID-19 in populations with incomplete testing"
+author: "Jade Benjamin-Chung"
+date: "3/26/2020"
+output: 
+  rmarkdown::html_document:
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+library(reshape2)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(xtable)
+library(kableExtra)
+```
+
+## 1. Problem
+
+Some media sites are publishing graphs of COVID-19 case counts over time by country. These case counts are not directly comparable due to differences in tests used, testing availability and protocols (e.g., testing of symptomatics only vs. asymptomatics + symptomatics), and differing age distributions. For example, here’s a graph from 3/24/20 on the Financial Times website. 
+
+The purpose of this analysis is to estimate expected case counts if testing was available to all individuals. The goal is to make the code publicly available so that anyone could continue to update it as the situation changes. 
+
+Here's a quick summary of the remainder of this document: 
+
+- **Current number tested in the US**: 103,945
+- **US population size**: 331,002,651
+- **Observed case count**: 46,805
+- **Prevalence based on observed case count**: 0.01%
+
+Using a probabilistic bias analysis that assigns plausible distributions of the probability of being symptomatic if tested and the probability of testing positive if asymptomatic or symptomatic, we obtain the following estimates: 
+
+- **Expected case count if everyone was tested**: 72452706
+- **Prevalence based on expected case count**: 22%
+
+So far, this is up and running for a single country on a single day. The code could be extended to read in up-to-date estimates of COVID testing and case counts across multiple countries. 
+
+![](financialtimes.png)
+
+## 2. Methods
+We will use a probabilistic bias analysis to correct for disease misclassification (Lash et al., *Applying Quantitative Bias Analysis to Epidemiologic Data*). We will used observed counts of tests performed and the observed probability that a person who tests positive is asymptomatic using data from countries with extensive testing. We will assign distributions of our best guesses of remaining parameters using the best available information. We will repeatedly draw from these distributions, estimate the expected number of cases using the formulas below, and then repeat this process at least 1,000 times to obtain a distribution of expected case counts if the entire population was tested. 
+
+### 2.1 Correction for incomplete testing protocol 
+First, we need to define values of $P(S|\text{tested})$ and $P(S|\text{untested})$ based on testing procedures in the US and values of $P(\text{test +}|S)$ and $P(\text{test +}|A)$ using information from other countries where testing procedures are more representative. Distributions for these parameters should take into consideration differing age distributions and public health interventions between these countries and the US. 
+
+$P(S | \text{untested})$ = probability of being symptomatic if not tested for COVID
+
+$P(S | \text{tested})$ = probability of being symptomatic if tested for COVID
+
+$P(\text{test}+ | S, \text{tested})$ = probability of testing positive if symptomatic 
+
+$P(A | \text{test} +, \text{tested})$ = probability of being asymptomatic if tested positive 
+
+Another quantity of interest is $P(A|\text{test} +)$. We solve for this quantity after setting values of $P(\text{test +}|S)$, $P(\text{test +}|A)$, $P(S|\text{tested})$, and $P(S|\text{untested})$ to ensure that this value also aligns with best estimates of the proportion of individuals who test positive and are asymptomatic. The goal is to set the values of the 4 parameters above such that P(A | test+) $\approx$ 0.415, consistent with reports from countries that have performed extensive testing (Iceland, South Korea). We will compare the age distributions of these countries to that of the US to ensure comparability; if distributions differ substantially, we will adjust P(A | test+) for age if it possible to obtain age-specific rates from each country (see age distributions in the Supplement). 
+
+$N$ = population size
+
+$N_{\text{tested}}$ = observed population tested
+
+$N_S = \bigg(P (S | \text{tested}) \times N_{\text{tested}}\bigg) + \bigg(P (S | \text{untested})\times [N - N_{\text{tested}}]\bigg)$
+
+$N_A = \bigg[N_{\text{tested}} - \bigg(P (S | \text{tested}) \times N_{\text{tested}}\bigg)\bigg] + \bigg[N - N_{\text{tested}} - \bigg(P (S | \text{untested})\times [N - N_{\text{tested}}]\bigg)\bigg]$
+
+$P(A|\text{test} +) = \frac{P(\text{test}+|A) \times N_A}{(P(\text{test}+|A) \times N_A) + (P(\text{test}+|S) \times N_S)}$
+
+We calculate the probability of being symptomatic ($P(S)$) or asymptomatic ($P(A)$) assuming all individuals in the US were tested using $P (S | \text{tested})$ and $P (S | \text{untested})$. These calculations account for differing testing rates among symptomatic and asymptomatic individuals.
+
+$P(S) = \frac{1}{N}\bigg((P(S|\text{tested}) \times N_\text{tested}) + (P(S|\text{untested}) \times N_\text{untested})\bigg)$
+
+$P(A) = 1 - P(S)$
+
+Next, estimate the expected asymptomatic and symptomatic case counts if everyone in the US was tested applying the best available estimates of $P(\text{test +}|S)$ and $P(\text{test +}|A)$ from other countries where testing procedures are more representative. Distributions for these parameters should take into consideration differing age distributions and public health interventions between these countries and the US.
+
+$A^*_s$ = Expected positive tests among symptomatic in whole population
+
+$A^*_a$ = Expected positive tests among asymptomatic in whole population
+
+$A^*_S = N \times P(\text{test}+|S) \times P(S)$
+
+$A^*_A = N \times P(\text{test}+|A) \times P(A)$
+
+### 2.2 Correction for sensitivity and specificity of test
+Next, we correct the expected case counts to account for imperfect sensitivity and specificity of the test used to detect COVID-19 infection (Rothman et al., *Modern Epidemiology*, 3rd Ed.).
+
+
+$Se$ = Sensitivity of test
+
+$Sp$ = Specificity of test
+
+$Fp$ = $1 - Sp$ = False-positive probability
+
+$A^*= A^*_s + A^*_a$ = Expected positive tests in whole population
+
+$B^*= N - A^*$ = Expected negative tests in whole population
+
+$A$ = True # positive for COVID
+
+$B$ = True # negative for COVID
+
+$A = (A^* - Fp N) / (Se + Sp - 1)$
+
+where $N = A + B = A^* + B^*$
+
+
+### 2.3 Example for the US for a single day
+
+In this section, we estimate the number of cases in the US on a single day if everyone was tested using best available estimates for the probability of being asymptomatic vs. symptomatic if testing positive. We obtain an estimate of 66,262,897 cases, which implies a COVID-19 prevalence of 20%. The limitation of this calculation is that it does not build in uncertainty around the input parameters. 
+
+```{r example}
+# get expected number of cases accounting for insufficient testing
+# assume sensitivity and specificity = 100%
+calc_A_star = function(N, N_tested, P_S_tested, P_S_untested, P_testpos_S, P_testpos_A, Se, Sp){
+  
+  N_untested = N - N_tested
+  
+  # estimate proportion of population that is asymptomatic and symptomatic
+  P_S = (1/N) * ((P_S_tested * N_tested) + (P_S_untested * N_untested))
+  P_A = 1 - P_S
+  
+  # estimate expected asymptomatic and symptomatic case counts
+  # if everyone was tested
+  A_star_S = N * P_testpos_S * P_S
+  A_star_A = N * P_testpos_A * P_A
+  
+  A_star = A_star_S + A_star_A
+  
+  # correct for imperfect sensitivity and specificity
+  A = (A_star - ((1 - Sp) * N)) / (Se + Sp - 1)
+  
+  return(A)
+  
+}
+
+calc_A_star(N = 331002651,      # Population size
+            N_tested = 103945,  # Number tested
+            P_S_tested = 0.8,   # P(S|tested)
+            P_S_untested = 0.2, # P(S|untested)
+            P_testpos_S = 0.8,  # P(test+ | S, tested)
+            P_testpos_A = 0.2,  # P(A |test+, tested)
+            Se = 0.8,           # Sensitivity of test
+            Sp =  0.8           # Specificity of test
+            )
+
+```
+
+
+## 3. Data sources
+
+| Dataset       | Source        | Reliability  |
+| :------------- |:-------------| -----|
+| World and US case counts over time at different geographic levels  | [Hopkins Github](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_daily_reports/03-23-2020.csv)  | Great |
+|US County level case counts | [NYTimes US County Github](https://github.com/nytimes/covid-19-data) | Great |
+| Testing protocols in different countries/states | [Our World in Data](https://ourworldindata.org/coronavirus-testing-source-data)      |  Variable  |
+|Case counts and test counts |[COVID tracking project](https://covidtracking.com/data/) | Good|
+
+## 4. Probabilistic bias analysis
+
+To account for uncertainty in the input parameters (), we assign distributions to the parameters required to correct case counts. We use a probabilistic bias analysis, in which we sample from each distribution, calculate the number of expected cases, and then repeat this process, sampling with replacement, 1000 times. This yields a distribution of values of expected cases. We can use the median and other percentiles of the distribution to draw inferences about the expected number of COVID-19 cases in the US on a given day. 
+
+```{r distributions}
+source(paste0(here::here(), "/2-analysis/priors.R"))
+```
+
+
+```{r dist-table, echo = FALSE}
+simdata = data.frame(dist_P_S_tested = dist_P_S_tested,
+                     dist_P_S_untested = dist_P_S_untested,
+                     dist_P_testpos_S = dist_P_testpos_S,
+                     dist_P_testpos_A = dist_P_testpos_A,
+                     dist_Se = dist_Se,
+                     dist_Sp = dist_Sp) 
+
+# inputs:
+# P_S_tested: probability(S | tested)
+# P_S_untested: probability(S | untested)
+# P_testpos_S: probability(test + | S)
+# P_testpos_A: probability(test + | A)
+# N: number in population
+# N: number tested in population
+
+# returns: P(A|test+), P(S|test+)
+
+est_P_AS_testpos = function(P_S_tested, P_S_untested, P_testpos_S, P_testpos_A,
+                           N_tested, N){
+  
+  # scale up tested population assuming everyone was tested,
+  # stratify by symptom status
+  N_S = (P_S_tested * N_tested) + (P_S_untested*(N - N_tested))
+  N_A = (N_tested - (P_S_tested * N_tested)) + 
+    (N - N_tested - (P_S_untested*(N - N_tested)))
+  
+  N_A_testpos = P_testpos_A * N_A
+  N_S_testpos = P_testpos_S * N_S
+  
+  P_A_testpos = N_A_testpos / (N_A_testpos + N_S_testpos)
+  P_S_testpos = N_S_testpos / (N_A_testpos + N_S_testpos)
+  
+  return(list(P_A_testpos = P_A_testpos,
+              P_S_testpos = P_S_testpos))
+  
+}
+
+dist_P_AS_testpos = matrix(NA, nrow = nrow(simdata), ncol = 2)
+
+for(i in 1:nrow(simdata)){
+  dist_P_AS_testpos[i,1] = est_P_AS_testpos(
+    P_S_tested = simdata$dist_P_S_tested[i],
+    P_S_untested = simdata$dist_P_S_untested[i],
+    P_testpos_S = simdata$dist_P_testpos_S[i],
+    P_testpos_A = simdata$dist_P_testpos_A[i],
+    N_tested = 103945,
+    N = 331002651
+  )$P_A_testpos
+  
+  dist_P_AS_testpos[i,2] = est_P_AS_testpos(
+    P_S_tested = simdata$dist_P_S_tested[i],
+    P_S_untested = simdata$dist_P_S_untested[i],
+    P_testpos_S = simdata$dist_P_testpos_S[i],
+    P_testpos_A = simdata$dist_P_testpos_A[i],
+    N_tested = 103945,
+    N = 331002651
+  )$P_S_testpos
+}
+
+simdata = simdata %>% mutate(
+  dist_P_A_testpos = dist_P_AS_testpos[,1],
+  dist_P_S_testpos = dist_P_AS_testpos[,2]
+  )
+
+simdatal = melt(simdata)
+
+simdata = simdata %>% dplyr::select(
+  dist_P_S_tested, dist_P_S_untested,
+  dist_P_testpos_S, dist_P_testpos_A,
+  dist_P_S_testpos, dist_P_A_testpos,
+  dist_Se, dist_Sp
+)
+
+table = data.frame(
+  label = c(
+    "Distribution of P(Symptomatic | tested)",
+    "Distribution of P(Symptomatic | not tested)", 
+    "Distribution of P(Test + | Symptomatic)", 
+    "Distribution of P(Test + | Asymptomatic)", 
+    "Distribution of P(Symptomatic | Test +)",
+    "Distribution of P(Asymptomatic | Test +)",
+    "Distribution of test sensitivity",
+    "Distribution of test specificity"
+  ),
+  min =    sprintf("%0.02f", apply(simdata, 2, min)),
+  median = sprintf("%0.02f", apply(simdata, 2, median)),
+  max =    sprintf("%0.02f", apply(simdata, 2, max))
+)
+
+rownames(table) = NULL
+
+kable(table) %>%
+  kable_styling()
+```
+
+```{r plot-distributions, echo=FALSE}
+simdatal = simdatal %>% mutate(label = case_when(
+  variable == "dist_P_S_tested" ~ "P(Symptomatic | tested)",
+  variable == "dist_P_S_untested" ~  "P(Symptomatic | not tested)", 
+  variable == "dist_P_testpos_S" ~  "P(Test + | Symptomatic)", 
+  variable == "dist_P_testpos_A" ~  "P(Test + | Asymptomatic)", 
+  variable == "dist_P_S_testpos" ~  "P(Symptomatic | Test +)",
+  variable == "dist_P_A_testpos" ~  "P(Asymptomatic | Test +)",
+  variable == "dist_Se" ~  "Test sensitivity",
+  variable == "dist_Sp" ~  "Test specificity"
+)) %>%
+  mutate(label = factor(label, levels = c(
+    "P(Symptomatic | tested)","P(Symptomatic | not tested)", 
+    "P(Test + | Symptomatic)", "P(Test + | Asymptomatic)", 
+    "P(Symptomatic | Test +)", "P(Asymptomatic | Test +)",
+    "Test sensitivity","Test specificity"
+  )))
+
+ggplot(simdatal, aes(x = value)) +
+  geom_histogram(color="black", fill="white", bins=80) + 
+  facet_wrap(~label, ncol = 2) +
+  theme_bw() + xlab("") + ylab("")
+
+```
+
+
+
+```{r prob-bias-corr}
+################################################################################ 
+# Function to perform probabilistic bias correction 
+# data: 
+################################################################################ 
+
+# Documentation: correct_bias
+# Usage:         correct_bias()
+# Description:   Draw from the assumed distributions of  
+#                
+
+# Args/Options:
+
+
+# Returns:       
+# Output:       
+
+correct_bias = function(N, N_tested, distributions){
+  cat(".")
+  # randomly sample from each distribution 
+  samples = apply(distributions, 2, function(x) sample(x, size=1, replace=TRUE))
+  
+  # corrected case count
+  Astar = calc_A_star(N = N,
+                      N_tested = N_tested,
+                      P_S_tested = samples[which(names(samples) == "dist_P_S_tested")],
+                      P_S_untested = samples[which(names(samples) == "dist_P_S_untested")],
+                      P_testpos_S = samples[which(names(samples) == "dist_P_testpos_S")],
+                      P_testpos_A = samples[which(names(samples) == "dist_P_testpos_A")],
+                      Se = samples[which(names(samples) == "dist_Se")],
+                      Sp = samples[which(names(samples) == "dist_Sp")]
+  )
+  
+  out = data.frame(
+    Astar = Astar,
+    N = N,
+    N_tested = N_tested,
+    P_S_tested = samples[which(names(samples) == "dist_P_S_tested")],
+    P_S_untested = samples[which(names(samples) == "dist_P_S_untested")],
+    P_testpos_S = samples[which(names(samples) == "dist_P_testpos_S")],
+    P_testpos_A = samples[which(names(samples) == "dist_P_testpos_A")],
+    Se = samples[which(names(samples) == "dist_Se")],
+    Sp = samples[which(names(samples) == "dist_Sp")]
+  )
+  
+  return(out)
+}
+
+#----------------------------------------
+# Obtain corrected case estimates
+#----------------------------------------
+set.seed(123)
+reps = 1000
+result = replicate(reps, correct_bias(N = 331002651,
+                                      N_tested = 103945,
+                                      distributions = simdata)
+) 
+
+result_long = as.data.frame(matrix(result, nrow=reps, byrow=TRUE))
+colnames(result_long) = c(
+  "exp_cases", "N", "N_tested", "P_S_tested", "P_S_untested",
+  "P_testpos_S", "P_testpos_A", "Se", "Sp"
+)
+
+for(i in 1:ncol(result_long)){
+  result_long[,i] = unlist(result_long[,i])
+}
+
+median(result_long$exp_cases)
+```
+
+```{r plot-corrected-cases, echo=FALSE}
+
+ggplot(result_long, aes(x = exp_cases))+
+  geom_histogram(fill= "white", color="black", bins=100) + 
+  scale_x_log10(labels = comma) +
+  geom_vline(xintercept = 46805, linetype = "dashed")+
+  # geom_vline(xintercept = quantile(result_long$exp_cases, prob=0.05), 
+             # color = "blue")+
+  # geom_vline(xintercept = quantile(result_long$exp_cases, prob=0.95), 
+             # color = "blue")+
+  theme_bw() +
+  xlab("Expected COVID-19 cases, adjusting for under-testing") +
+  ylab("Number of simulations")
+
+```
+
+The dashed line shows the observed COVID-19 case count. The histogram shows the distribution of expected values of COVID-19 cases if everyone was tested, accounting for differences in testing practices for asymptomatic and symptomatic individuals 
+
+## 5. Supplement
+
+<!-- Source: populationpyramid.net -->
+<img src="agedist_US.png" width="300" height="300" />
+<img src="agedist_iceland.png" width="300" height="300" />
+<img src="agedist_skorea.png" width="300" height="300" />

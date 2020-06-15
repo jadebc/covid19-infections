@@ -17,7 +17,7 @@ testing_protocols = read.csv(paste0(results_path, "testing_by_state.csv"))
 state_abb_key = read.csv(state_abbrev_path) %>% select(statename = State, state = Abbreviation)
 
 # exclude Puerto Rico 
-state_abb_key = state_abb_key[state_abb_key$state != 'PR', ]
+# state_abb_key = state_abb_key[state_abb_key$state != 'PR', ]
 
 
 testing_protocols = testing_protocols %>% select(-X, state = State) %>% 
@@ -31,7 +31,7 @@ testing_protocols = testing_protocols %>% select(-X, state = State) %>%
 
 # Read in covid US and state data, excluding Puerto Rico 
 covid_usa_state <- load_state_data(min_date = "2020-02-28", max_date = "2020-04-18")
-covid_usa_state = covid_usa_state[covid_usa_state$state != 'PR', ]
+# covid_usa_state = covid_usa_state[covid_usa_state$state != 'PR', ]
 
 maxdate = max(covid_usa_state$date)
 
@@ -50,7 +50,7 @@ region8 = c("Texas",  "Oklahoma", "Arkansas", "Louisiana")
 region9 = c("Kentucky", "Tennessee", "Mississippi","Alabama")
 region10 = c("North Carolina","South Carolina","Georgia","Florida",
              "Delaware","Maryland","Virginia","West Virginia", 
-             "District of Columbia")
+             "District of Columbia","Puerto Rico")
 
 covid_state = covid_usa_state %>%
   dplyr::select(date, state, statename, positive, total, population) %>%

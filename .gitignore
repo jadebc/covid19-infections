@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+*.Rproj
+.DS_Store
+NO_PUSH*.RDS
+~/.boxr-oauth
+5-results/bias-corrected-distributions/

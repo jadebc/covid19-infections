@@ -1,0 +1,55 @@
+state,county,order,date,level
+Alabama,NA,Stay at home,2020-04-04,state
+Alaska,NA,Stay at home,2020-03-28,state
+Arizona,NA,Stay at home,2020-03-31,state
+California,NA,Stay at home,2020-03-19,state
+Colorado,NA,Stay at home,2020-03-26,state
+Connecticut,NA,Stay at home,2020-03-23,state
+Delaware,NA,Shelter in place,2020-03-24,state
+District of Columbia,NA,Stay at home,2020-04-01,state
+Florida,NA,Stay at home,2020-04-03,state
+Georgia,NA,Shelter in place,2020-04-03,state
+Hawaii,NA,Stay at home,2020-03-25,state
+Idaho,NA,Stay at home,2020-03-25,state
+Illinois,NA,Stay at home,2020-03-21,state
+Indiana,NA,Stay at home,2020-03-24,state
+Kansas,NA,Stay at home,2020-03-30,state
+Kentucky,NA,Healthy at home,2020-03-26,state
+Louisiana,NA,Stay at home,2020-03-23,state
+Maine,NA,Stay at home,2020-04-02,state
+Maryland,NA,Stay at home,2020-03-30,state
+Massachusetts,NA,Stay at home advisory,2020-03-24,state
+Michigan,NA,Stay at home,2020-03-24,state
+Minnesota,NA,Stay at home,2020-03-27,state
+Mississippi,NA,Shelter in place,2020-04-03,state
+Missouri,NA,Stay at home,2020-04-06,state
+Montana,NA,Stay at home,2020-03-28,state
+Nevada,NA,Stay at home,2020-04-01,state
+New Hampshire,NA,Stay at home,2020-03-27,state
+New Jersey,NA,Stay at home,2020-03-21,state
+New Mexico,NA,Stay at home,2020-03-24,state
+New York,NA,Stay at home,2020-03-22,state
+North Carolina,NA,Stay at home,2020-03-30,state
+Ohio,NA,Stay at home,2020-03-23,state
+Oregon,NA,Stay at home,2020-03-23,state
+Pennsylvania,NA,Stay at home,2020-04-01,state
+Puerto Rico,NA,Curfew,2020-03-15,state
+Rhode Island,NA,Stay at home,2020-03-28,state
+Tennessee,NA,Stay at home,2020-03-31,state
+Texas,NA,Stay at home,2020-04-02,state
+Vermont,NA,Stay at home,2020-03-25,state
+Virginia,NA,Stay at home,2020-03-30,state
+Washington,NA,Stay at home,2020-03-23,state
+West Virginia,NA,Stay at home,2020-03-24,state
+Wisconsin,NA,Stay at home,2020-03-25,state
+Oklahoma,Edmond,Shelter in place,2020-03-30,county
+Oklahoma,Norman,Stay at home,2020-03-25,county
+Oklahoma,Oklahoma City,Shelter in place,2020-03-28,county
+Oklahoma,Stillwater,Shelter in place,2020-03-30,county
+Oklahoma,Tulsa,Shelter in place,2020-03-28,county
+South Carolina,Charleston,Stay at home,2020-03-26,county
+South Carolina,Columbia,Stay at home,2020-03-29,county
+Utah,Davis County,Stay at home,2020-04-01,county
+Utah,Salt Lake County,Stay at home,2020-03-30,county
+Utah,Summit County,Stay at home,2020-03-27,county
+Wyoming,Jackson,Stay at home,2020-03-28,county

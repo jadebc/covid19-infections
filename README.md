@@ -14,6 +14,7 @@ To date, coronavirus testing in the US has been extremely limited. Confirmed COV
 * `0-prior-functions.R`: R script containing functions to generate priors
 
 **`1-data`** : folder containing data processing scripts
+NOTE: some scripts are deprecated
 
 **`2-analysis`** : folder containing analysis scripts. To rerun all scripts in this subdirectory, run the bash script `0-run-analysis.sh`.
 
@@ -27,18 +28,20 @@ To date, coronavirus testing in the US has been extremely limited. Confirmed COV
 
 * `1-fig-testing.R`: creates plot of testing patterns by state over time
 * `2-fig-cases-usa-state-bar.R`: creates bar plot of confirmed vs. estimated infections by state
-* `3-fig-map-usa-state.R`: creates map of confirmed vs. estimated infections by state
+* `3a-fig-map-usa-state.R`: creates map of confirmed vs. estimated infections by state
+* `3b-fig-map-usa-state-shiny.R`: creates map of confirmed vs. estimated infections by state with search functionality by state
 * `4-fig-priors.R`: creates figure with priors for US as a whole
 * `5-fig-density-usa.R`: creates figure of distribution of estimated cases in the US 
 * `6-table-data-quality.R`: creates table of data quality grading from COVID Tracking Project
 * `7-fig-testpos.R`: creates figure of the probability of testing positive among those tested by state
+* `8-fig-percent-undertesting-state.R`: creates figure of the percentage of under estimation due to incomplete testing
 
 **`4-figures`** : folder containing figure files. 
 
 **`5-results`** : folder containing analysis results objects. 
 
-**`6-sensitivity`** : folder containing sensitivity analysis scripts. 
+**`6-sensitivity`** : folder containing scripts to run the sensitivity analyses
 
 Contributors: Jade Benjamin-Chung, Sean L. Wu, Anna Nguyen, Stephanie Djajadi, Nolan N. Pokpongkiat, Anmol Seth, Andrew Mertens
 
-Wu SL, Mertens A, Crider YS, Nguyen A, Pokpongkiat NN, Djajadi S, et al. Substantial underestimation of SARS-CoV-2 infection in the United States due to incomplete testing and imperfect test accuracy. *medRxiv*. 2020; 2020.05.12.20091744. [doi:10.1101/2020.05.12.20091744](https://doi.org/10.1101/2020.05.12.20091744)
+Wu SL, Mertens A, Crider YS, Nguyen A, Pokpongkiat NN, Djajadi S, et al. Substantial underestimation of SARS-CoV-2 infection in the United States due to incomplete testing and imperfect test accuracy. medRxiv. 2020; 2020.05.12.20091744. [doi:10.1101/2020.05.12.20091744](https://doi.org/10.1101/2020.05.12.20091744)
