@@ -7,13 +7,7 @@
 # distribution from simulation
 #######################################
 rm(list=ls())
-library(boxr)
 source(paste0(here::here(), "/0-config.R"))
-
-# samples = as.data.frame(box_search("NO_PUSH_corrected_samples_us_state", ancestor_folder_ids = "115224581369"))
-# latest = samples %>% filter(modified_at == max(samples$modified_at))
-# latest_file_id = latest$id
-# dist = box_read(latest_file_id)
 
 tmpshot <- fileSnapshot(paste0(results_path, "bias-corrected-distributions/state/"))
 latest = rownames(tmpshot$info[which.max(tmpshot$info$mtime),])

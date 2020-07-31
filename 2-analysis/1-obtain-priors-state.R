@@ -67,5 +67,4 @@ toc()
 
 names(state_priors_out_proc) = unique(covid_state$state)
 
-# box_write(state_priors_out_proc, "NO_PUSH_state_priors_out.RDS", box_getwd())
 saveRDS(state_priors_out_proc, paste0(results_path, "NO_PUSH_state_priors_out.RDS"))

@@ -11,7 +11,6 @@ rm(list=ls())
 source(paste0(here::here(), "/0-config.R"))
 
 
-# priors = box_search("NO_PUSH_state_priors_out.RDS") %>% box_read()
 priors = readRDS(paste0(results_path, "NO_PUSH_state_priors_out.RDS"))
 
 state_abbrev <- read_csv(state_abbrev_path) %>%
