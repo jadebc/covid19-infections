@@ -79,7 +79,11 @@ plot_data <- do.call(what = rbind,args = plot_data)
 
 plotbreaks <- c(0, 1000, 10000, 100000, 1000000)
 
-# plot <- ggplot(plot_data, aes(y = exp_cases, x = statename_f)) +
+# # 2 panel version
+# panel1 <- c("PR","NY","NJ","CA","MI","TX","IL","PA","GA","FL","MA","OH","VI","IN","CO","MD","CT","LA","NC","AZ","WA","MO","SC","AL","TN","WI")
+# plot_data$panel1 <- plot_data$state %in% panel1
+# 
+# plot_panel1 <- ggplot(plot_data[plot_data$panel1 == T,], aes(y = exp_cases, x = statename_f)) +
 #   geom_boxplot(aes(fill=as.factor(scenario),ymin=lb,ymax=ub),
 #                outlier.stroke = 0.01, lwd = 0.2, outlier.alpha = 0.25,outlier.size = 0.5) +
 #   scale_y_log10(breaks = plotbreaks,
@@ -90,35 +94,75 @@ plotbreaks <- c(0, 1000, 10000, 100000, 1000000)
 #   theme_bw() +
 #   theme(legend.position="none")
 # 
-# ggsave(plot, filename = paste0(plot_path, "fig-sensitivity.png"),
-#        width = 10, height=8)
+# plot_panel2 <- ggplot(plot_data[plot_data$panel1 == F,], aes(y = exp_cases, x = statename_f)) +
+#   geom_boxplot(aes(fill=as.factor(scenario),ymin=lb,ymax=ub),
+#                outlier.stroke = 0.01, lwd = 0.2, outlier.alpha = 0.25,outlier.size = 0.5) +
+#   scale_y_log10(breaks = plotbreaks,
+#                 labels = format(plotbreaks, scientific = F, big.mark = ",")) +
+#   # ylab("Distribution of estimated COVID-19 infections (Sensitivity Analysis)") +
+#   xlab("") +
+#   coord_flip() +
+#   theme_bw() +
+#   theme(legend.position="none",axis.title.x = element_blank())
 
 
+
+plot_data %>%
+  group_by(statename_f,scenario) %>%
+  summarise(med = median(exp_cases), 
+            q025 = quantile(x = exp_cases,probs = 0.025),
+            q975 = quantile(x = exp_cases,probs = 0.975),
+            q25 = quantile(x = exp_cases,probs = 0.25),
+            q75 = quantile(x = exp_cases,probs = 0.75),
+            state = unique(state)
+            ,
+  ) -> plot_data_summary
+  
 # 2 panel version
 panel1 <- c("PR","NY","NJ","CA","MI","TX","IL","PA","GA","FL","MA","OH","VI","IN","CO","MD","CT","LA","NC","AZ","WA","MO","SC","AL","TN","WI")
-plot_data$panel1 <- plot_data$state %in% panel1
+plot_data_summary$panel1 <- plot_data_summary$state %in% panel1
 
-plot_panel1 <- ggplot(plot_data[plot_data$panel1 == T,], aes(y = exp_cases, x = statename_f)) +
-  geom_boxplot(aes(fill=as.factor(scenario),ymin=lb,ymax=ub),
-               outlier.stroke = 0.01, lwd = 0.2, outlier.alpha = 0.25,outlier.size = 0.5) +
+plot_panel1 <- ggplot(plot_data_summary[plot_data_summary$panel1 == T,]) +
+  geom_boxplot(
+    aes(
+      x = statename_f,
+      middle = med, 
+      ymin = q025, 
+      ymax = q975, 
+      lower = q25,
+      upper = q75,
+      fill = as.factor(scenario)
+    ),
+    outlier.shape = NA,stat = "identity"
+  ) +
   scale_y_log10(breaks = plotbreaks,
                 labels = format(plotbreaks, scientific = F, big.mark = ",")) +
   ylab("Distribution of estimated COVID-19 infections (Sensitivity Analysis)") +
   xlab("") +
   coord_flip() +
   theme_bw() +
-  theme(legend.position="none")
+  theme(axis.title = element_text(size = rel(1.15)),axis.text = element_text(size = rel(1.10)), legend.position="none")
 
-plot_panel2 <- ggplot(plot_data[plot_data$panel1 == F,], aes(y = exp_cases, x = statename_f)) +
-  geom_boxplot(aes(fill=as.factor(scenario),ymin=lb,ymax=ub),
-               outlier.stroke = 0.01, lwd = 0.2, outlier.alpha = 0.25,outlier.size = 0.5) +
+plot_panel2 <- ggplot(plot_data_summary[plot_data_summary$panel1 == F,]) +
+  geom_boxplot(
+    aes(
+      x = statename_f,
+      middle = med, 
+      ymin = q025, 
+      ymax = q975, 
+      lower = q25,
+      upper = q75,
+      fill = as.factor(scenario)
+    ),
+    outlier.shape = NA,stat = "identity"
+  ) +
   scale_y_log10(breaks = plotbreaks,
                 labels = format(plotbreaks, scientific = F, big.mark = ",")) +
-  # ylab("Distribution of estimated COVID-19 infections (Sensitivity Analysis)") +
   xlab("") +
   coord_flip() +
   theme_bw() +
-  theme(legend.position="none",axis.title.x = element_blank())
+  theme(axis.title.x = element_blank(),axis.text = element_text(size = rel(1.10)), legend.position="none")
+
 
 # ggsave(plot_panel1, filename = paste0(plot_path, "fig-sensitivity-1.png"),
 #        width = 10, height=8)

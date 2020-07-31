@@ -68,9 +68,45 @@ plotdf$statename_f = fct_reorder(plotdf$statename, plotdf$med)
 
 plotbreaks = c(0, 1000, 10000, 100000, 1000000)
 
-plot = ggplot(plotdf, aes(y = exp_cases, x = statename_f)) +
-  geom_boxplot(aes(fill = log10(med)),
-               outlier.stroke = 0.01, lwd = 0.2) +
+# plot = ggplot(plotdf, aes(y = exp_cases, x = statename_f)) +
+#   geom_boxplot(aes(fill = log10(med)),
+#                outlier.stroke = 0.01, lwd = 0.2) +
+#   scale_y_log10(breaks = plotbreaks,
+#                 labels = format(plotbreaks, scientific = F, big.mark = ",")) +
+#   scale_fill_viridis("log10(median)", begin = 0.3, end = 0.95, direction = -1, option = "A") +
+#   ylab("Distribution of estimated COVID-19 infections") +
+#   xlab("") +
+#   coord_flip() +
+#   theme_bw() +
+#   theme(legend.position="none")
+# plot
+
+plotdf %>% 
+  group_by(statename_f) %>%
+  summarise(med = median(exp_cases), 
+            q025 = quantile(x = exp_cases,probs = 0.025),
+            q975 = quantile(x = exp_cases,probs = 0.975),
+            q25 = quantile(x = exp_cases,probs = 0.25),
+            q75 = quantile(x = exp_cases,probs = 0.75),
+            name = unique(State)
+            ) -> plotdf_summary
+
+plotdf_summary$name = factor(plotdf_summary$name)
+plotdf_summary$name = fct_reorder(plotdf_summary$name, plotdf_summary$med)
+
+plot <- ggplot(data = plotdf_summary) +
+  geom_boxplot(
+    aes(
+      x = name,
+      middle = med, 
+      ymin = q025, 
+      ymax = q975, 
+      lower = q25,
+      upper = q75,
+      fill = log10(med)
+        ),
+    outlier.shape = NA,stat = "identity"
+    ) +
   scale_y_log10(breaks = plotbreaks,
                 labels = format(plotbreaks, scientific = F, big.mark = ",")) +
   scale_fill_viridis("log10(median)", begin = 0.3, end = 0.95, direction = -1, option = "A") +
@@ -78,8 +114,7 @@ plot = ggplot(plotdf, aes(y = exp_cases, x = statename_f)) +
   xlab("") +
   coord_flip() +
   theme_bw() +
-  theme(legend.position="none")
-plot
+  theme(axis.title = element_text(size = rel(1.15)),axis.text = element_text(size = rel(1.10)), legend.position="none")
 
 ggsave(plot, filename = paste0(plot_path, "fig-state-cases-distribution.png"),
        width = 10, height=8)
