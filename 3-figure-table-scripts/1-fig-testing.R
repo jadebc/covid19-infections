@@ -128,6 +128,7 @@ palette = viridis(n = 5, option = "C", begin=0, end=0.9, direction = -1)
 
 testplot = ggplot(covid_state, aes(x = date, y = testrate, group = state,  
                                    text = mylabel)) + 
+  geom_point(aes(col = testrate_cat), shape = 1, size = 0.75, stroke = 0.25) +
   geom_line(aes(col = testrate_cat)) +
   ylab("Population tested per 1,000") +
   xlab("Date") +
