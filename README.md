@@ -1,4 +1,4 @@
-# Substantial underestimation of COVID-19 infection in the United States due to incomplete testing and imperfect test accuracy
+# Substantial underestimation of SARS-CoV-2 infection in the United States
 
 ## Overview
 To date, coronavirus testing in the US has been extremely limited. Confirmed COVID-19 case counts underestimate the total number of infections in the population. We estimated the total COVID-19 infections – both symptomatic and asymptomatic – in the US in March 2020. We used a semi-Bayesian approach to correct for bias due to incomplete testing and imperfect test performance.
@@ -44,4 +44,4 @@ NOTE: some scripts are deprecated
 
 Contributors: Jade Benjamin-Chung, Sean L. Wu, Anna Nguyen, Stephanie Djajadi, Nolan N. Pokpongkiat, Anmol Seth, Andrew Mertens
 
-Wu SL, Mertens A, Crider YS, Nguyen A, Pokpongkiat NN, Djajadi S, Seth A, Hsiang MS, Colford Jr. JM, Reingold A, Arnold BF, Hubbard A, Benjamin-Chung J. Substantial underestimation of SARS-CoV-2 infection in the United States due to incomplete testing and imperfect test accuracy. *Nat Commun 11*, 4507 (2020). [https://doi.org/10.1038/s41467-020-18272-4](https://doi.org/10.1038/s41467-020-18272-4)
+Wu SL, Mertens A, Crider YS, Nguyen A, Pokpongkiat NN, Djajadi S, Seth A, Hsiang MS, Colford Jr. JM, Reingold A, Arnold BF, Hubbard A, Benjamin-Chung J. Substantial underestimation of SARS-CoV-2 infection in the United States. *Nat Commun 11*, 4507 (2020). [https://doi.org/10.1038/s41467-020-18272-4](https://doi.org/10.1038/s41467-020-18272-4)
