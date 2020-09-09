@@ -44,4 +44,4 @@ NOTE: some scripts are deprecated
 
 Contributors: Jade Benjamin-Chung, Sean L. Wu, Anna Nguyen, Stephanie Djajadi, Nolan N. Pokpongkiat, Anmol Seth, Andrew Mertens
 
-Wu SL, Mertens A, Crider YS, Nguyen A, Pokpongkiat NN, Djajadi S, et al. Substantial underestimation of SARS-CoV-2 infection in the United States due to incomplete testing and imperfect test accuracy. medRxiv. 2020; 2020.05.12.20091744. [doi:10.1101/2020.05.12.20091744](https://doi.org/10.1101/2020.05.12.20091744)
+Wu SL, Mertens A, Crider YS, Nguyen A, Pokpongkiat NN, Djajadi S, Seth A, Hsiang MS, Colford Jr. JM, Reingold A, Arnold BF, Hubbard A, Benjamin-Chung J. Substantial underestimation of SARS-CoV-2 infection in the United States due to incomplete testing and imperfect test accuracy. *Nat Commun 11*, 4507 (2020). [https://doi.org/10.1038/s41467-020-18272-4](https://doi.org/10.1038/s41467-020-18272-4)
